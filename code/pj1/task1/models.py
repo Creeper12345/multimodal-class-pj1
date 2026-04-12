@@ -154,6 +154,9 @@ class LavisFeatureExtractor:
             )
 
     def _extract_projected(self, samples: dict, mode: str) -> np.ndarray:
+        if not hasattr(self.model, "extract_features"):
+            return self._extract_blip_retrieval_features(samples, mode)
+
         with self._torch.no_grad():
             try:
                 features = self.model.extract_features(samples, mode=mode)
@@ -175,6 +178,35 @@ class LavisFeatureExtractor:
                 return _as_numpy(value)
         available = sorted(name for name in dir(features) if not name.startswith("_"))
         raise RuntimeError(f"LAVIS feature output lacks projected {mode} embeddings. Available: {available}")
+
+    def _extract_blip_retrieval_features(self, samples: dict, mode: str) -> np.ndarray:
+        required = ("visual_encoder", "tokenizer", "text_encoder", "vision_proj", "text_proj")
+        if not all(hasattr(self.model, name) for name in required):
+            missing = [name for name in required if not hasattr(self.model, name)]
+            raise RuntimeError(
+                "Model does not expose extract_features() and is missing BLIP retrieval components: "
+                + ", ".join(missing)
+            )
+
+        with self._torch.no_grad():
+            if mode == "image":
+                image = samples["image"]
+                image_embeds = self.model.visual_encoder.forward_features(image)
+                image_feat = self.model.vision_proj(image_embeds[:, 0, :])
+                return _as_numpy(image_feat)
+
+            text_input = samples["text_input"]
+            text = self.model.tokenizer(
+                text_input,
+                padding="max_length",
+                truncation=True,
+                max_length=getattr(self.model, "max_txt_len", 35),
+                return_tensors="pt",
+            ).to(self.device)
+            text_output = self.model.text_encoder.forward_text(text)
+            text_embeds = text_output.last_hidden_state
+            text_feat = self.model.text_proj(text_embeds[:, 0, :])
+            return _as_numpy(text_feat)
 
     def encode_images(self, image_paths: Sequence[Path], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
