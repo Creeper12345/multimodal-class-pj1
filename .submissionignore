@@ -1,0 +1,27 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.idea/
+.vscode/
+
+# Do not submit local datasets, caches, model weights, or generated archives.
+datasets/
+outputs/**/cache/
+outputs/**/hf_cache/
+outputs/**/torch_cache/
+outputs/**/logs/
+outputs/**/*.npy
+outputs/**/*.npz
+outputs/**/*.pt
+outputs/**/*.pth
+outputs/**/*.ckpt
+outputs/**/*.safetensors
+handin/
+*.zip
+*.tar.gz

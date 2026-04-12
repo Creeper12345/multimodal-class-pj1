@@ -1,0 +1,43 @@
+# Shared Python dependencies for PJ1.
+#
+# Install PyTorch separately for the target device first, then install this file.
+#
+# Recommended setup:
+#   conda create -n multimodal python=3.10 pip -y
+#
+# Linux server with CUDA 12.4:
+#   conda activate multimodal
+#   python -m pip install --index-url https://download.pytorch.org/whl/cu124 torch==2.5.1 torchvision==0.20.1
+#   python -m pip install decord==0.6.0
+#   python -m pip install -r requirements.txt
+#
+# macOS Apple Silicon:
+#   conda activate multimodal
+#   python -m pip install torch==2.5.1 torchvision==0.20.1
+#   conda install -c conda-forge decord -y
+#   python -m pip install -r requirements.txt
+#
+# Linux / CPU only:
+#   conda activate multimodal
+#   python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.5.1 torchvision==0.20.1
+#   python -m pip install decord==0.6.0
+#   python -m pip install -r requirements.txt
+#
+# Notes:
+# - `salesforce-lavis` pulls in older vision and transformer dependencies; keep
+#   `numpy<2` to avoid OpenCV import errors.
+# - `decord` is intentionally not pinned here because its installation path
+#   differs across Linux CUDA and macOS Apple Silicon.
+
+numpy==1.26.4
+pillow==12.2.0
+tqdm==4.67.3
+pandas==2.3.3
+matplotlib==3.10.8
+scikit-learn==1.7.2
+umap-learn==0.5.11
+
+transformers==4.26.1
+salesforce-lavis==1.0.2
+open_clip_torch==2.32.0
+pycocoevalcap==1.2

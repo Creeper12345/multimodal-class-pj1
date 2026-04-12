@@ -1,0 +1,24 @@
+{
+  "model_spec": "lavis:clip_feature_extractor:base",
+  "run_name": "lavis_clip_feature_extractor_base_n1_first_first_18abde64",
+  "dataset": {
+    "annotation": "datasets/annotations/captions_val2017.json",
+    "image_dir": "datasets/val2017",
+    "num_images": 1,
+    "num_captions": 5,
+    "max_images": 1
+  },
+  "metrics": {
+    "text_to_image": {
+      "R@1": 100.0,
+      "R@5": 100.0,
+      "R@10": 100.0
+    },
+    "image_to_text": {
+      "R@1": 100.0,
+      "R@5": 100.0,
+      "R@10": 100.0
+    }
+  },
+  "elapsed_seconds": 6.972068415954709
+}

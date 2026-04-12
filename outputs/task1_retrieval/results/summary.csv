@@ -1,0 +1,2 @@
+model_spec,run_name,num_images,num_captions,text_to_image_R@1,text_to_image_R@5,text_to_image_R@10,image_to_text_R@1,image_to_text_R@5,image_to_text_R@10,elapsed_seconds
+lavis:clip_feature_extractor:base,lavis_clip_feature_extractor_base_n1_first_first_18abde64,1,5,100.0,100.0,100.0,100.0,100.0,100.0,6.972
