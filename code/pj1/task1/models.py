@@ -91,6 +91,7 @@ class LavisFeatureExtractor:
     device: str
     image_pooling: str = "first"
     text_pooling: str = "first"
+    local_files_only: bool = False
 
     def __post_init__(self) -> None:
         import torch
@@ -156,6 +157,7 @@ class LavisFeatureExtractor:
 class TransformersClipExtractor:
     model_id: str
     device: str
+    local_files_only: bool = False
 
     def __post_init__(self) -> None:
         import torch
@@ -164,8 +166,14 @@ class TransformersClipExtractor:
         self.name = "transformers_" + self.model_id.replace("/", "_")
         self.device = resolve_device(self.device)
         self._torch = torch
-        self.processor = CLIPProcessor.from_pretrained(self.model_id)
-        self.model = CLIPModel.from_pretrained(self.model_id).to(self.device)
+        self.processor = CLIPProcessor.from_pretrained(
+            self.model_id,
+            local_files_only=self.local_files_only,
+        )
+        self.model = CLIPModel.from_pretrained(
+            self.model_id,
+            local_files_only=self.local_files_only,
+        ).to(self.device)
         self.model.eval()
 
     def encode_images(self, image_paths: Sequence[Path], batch_size: int) -> np.ndarray:
@@ -195,6 +203,7 @@ class OpenClipExtractor:
     model_name: str
     pretrained: str
     device: str
+    local_files_only: bool = False
 
     def __post_init__(self) -> None:
         import open_clip
@@ -207,6 +216,7 @@ class OpenClipExtractor:
             self.model_name,
             pretrained=self.pretrained,
             device=self.device,
+            cache_dir=os.environ.get("TORCH_HOME"),
         )
         self.tokenizer = open_clip.get_tokenizer(self.model_name)
         self.model.eval()
@@ -236,6 +246,7 @@ def load_model_from_spec(
     device: str = "auto",
     image_pooling: str = "first",
     text_pooling: str = "first",
+    local_files_only: bool = False,
 ) -> EmbeddingModel:
     """Create a model adapter from a compact spec string."""
 
@@ -251,16 +262,26 @@ def load_model_from_spec(
             device=device,
             image_pooling=image_pooling,
             text_pooling=text_pooling,
+            local_files_only=local_files_only,
         )
 
     if backend == "transformers-clip":
         if len(parts) != 2:
             raise ValueError("Transformers CLIP specs must be transformers-clip:<model_id>.")
-        return TransformersClipExtractor(model_id=parts[1], device=device)
+        return TransformersClipExtractor(
+            model_id=parts[1],
+            device=device,
+            local_files_only=local_files_only,
+        )
 
     if backend == "openclip":
         if len(parts) != 3:
             raise ValueError("OpenCLIP specs must be openclip:<model_name>:<pretrained>.")
-        return OpenClipExtractor(model_name=parts[1], pretrained=parts[2], device=device)
+        return OpenClipExtractor(
+            model_name=parts[1],
+            pretrained=parts[2],
+            device=device,
+            local_files_only=local_files_only,
+        )
 
     raise ValueError(f"Unknown model backend in spec: {spec}")

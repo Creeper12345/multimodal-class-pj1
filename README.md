@@ -6,6 +6,7 @@ Task 2 图像描述生成与 Task 3 表征分析。
 ## 先看这些文档
 
 - [运行说明](docs/运行说明.md)
+- [服务器部署说明](docs/服务器部署说明.md)
 - [项目说明](docs/项目说明.md)
 - [执行工作流](docs/执行工作流.md)
 - [工作日志](docs/WORKLOG.md)
@@ -46,10 +47,26 @@ conda run -n multimodal python scripts/check_environment.py --check-data
 conda run -n multimodal python code/pj1/task1/run_retrieval.py --dry-run --max-images 10
 ```
 
-### 4. Task 1 正式运行
+### 4. 预下载 Task 1 模型
+
+```bash
+conda run -n multimodal python scripts/prefetch_task1_models.py
+```
+
+### 5. Task 1 正式运行
 
 ```bash
 conda run -n multimodal python code/pj1/task1/run_retrieval.py \
+  --model-spec lavis:clip_feature_extractor:base \
+  --model-spec lavis:blip_retrieval:coco \
+  --model-spec lavis:blip2_feature_extractor:pretrain
+```
+
+如果模型已经预下载完成，并且你希望后续严格只读本地缓存：
+
+```bash
+conda run -n multimodal python code/pj1/task1/run_retrieval.py \
+  --local-files-only \
   --model-spec lavis:clip_feature_extractor:base \
   --model-spec lavis:blip_retrieval:coco \
   --model-spec lavis:blip2_feature_extractor:pretrain

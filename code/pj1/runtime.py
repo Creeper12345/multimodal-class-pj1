@@ -29,6 +29,14 @@ def configure_platform_env() -> None:
         os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 
 
+def configure_offline_mode(local_files_only: bool) -> None:
+    if not local_files_only:
+        return
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    os.environ["TRANSFORMERS_OFFLINE"] = "1"
+    os.environ["HF_DATASETS_OFFLINE"] = "1"
+
+
 def configure_runtime_env(output_dir: str | Path) -> RuntimePaths:
     configure_platform_env()
     output_dir = Path(output_dir)
