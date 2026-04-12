@@ -53,6 +53,13 @@ conda run -n multimodal python code/pj1/task1/run_retrieval.py --dry-run --max-i
 conda run -n multimodal python scripts/prefetch_task1_models.py
 ```
 
+如果服务器在国内，且直连 Hugging Face 不稳定：
+
+```bash
+conda run -n multimodal python scripts/prefetch_task1_models.py \
+  --hf-endpoint https://hf-mirror.com
+```
+
 ### 5. Task 1 正式运行
 
 ```bash

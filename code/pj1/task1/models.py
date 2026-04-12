@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 import sys
+from contextlib import contextmanager
 from typing import Protocol, Sequence
 
 import numpy as np
@@ -76,6 +77,48 @@ def _batched(items: Sequence, batch_size: int):
         yield items[start : start + batch_size]
 
 
+def _resolve_bert_tokenizer_path(explicit_path: str | None) -> Path | None:
+    candidates: list[Path] = []
+    if explicit_path:
+        candidates.append(Path(explicit_path))
+    env_path = os.environ.get("PJ1_BERT_TOKENIZER_PATH")
+    if env_path:
+        candidates.append(Path(env_path))
+    hf_home = os.environ.get("HF_HOME")
+    if hf_home:
+        candidates.append(Path(hf_home) / "manual" / "bert-base-uncased")
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
+    return None
+
+
+@contextmanager
+def _patch_lavis_bert_tokenizer(local_path: Path | None):
+    if local_path is None:
+        yield
+        return
+
+    from transformers import BertTokenizer
+
+    original = BertTokenizer.from_pretrained
+
+    @classmethod
+    def patched(cls, pretrained_model_name_or_path, *args, **kwargs):
+        target = pretrained_model_name_or_path
+        if pretrained_model_name_or_path == "bert-base-uncased":
+            target = str(local_path)
+            kwargs.setdefault("local_files_only", True)
+        return original(target, *args, **kwargs)
+
+    BertTokenizer.from_pretrained = patched
+    try:
+        yield
+    finally:
+        BertTokenizer.from_pretrained = original
+
+
 @dataclass
 class LavisFeatureExtractor:
     """LAVIS feature extractor adapter.
@@ -92,6 +135,7 @@ class LavisFeatureExtractor:
     image_pooling: str = "first"
     text_pooling: str = "first"
     local_files_only: bool = False
+    bert_tokenizer_path: str | None = None
 
     def __post_init__(self) -> None:
         import torch
@@ -100,12 +144,14 @@ class LavisFeatureExtractor:
         self.name = f"lavis_{self.model_name}_{self.model_type}"
         self.device = resolve_device(self.device)
         self._torch = torch
-        self.model, self.vis_processors, self.txt_processors = load_model_and_preprocess(
-            name=self.model_name,
-            model_type=self.model_type,
-            is_eval=True,
-            device=self.device,
-        )
+        tokenizer_path = _resolve_bert_tokenizer_path(self.bert_tokenizer_path)
+        with _patch_lavis_bert_tokenizer(tokenizer_path):
+            self.model, self.vis_processors, self.txt_processors = load_model_and_preprocess(
+                name=self.model_name,
+                model_type=self.model_type,
+                is_eval=True,
+                device=self.device,
+            )
 
     def _extract_projected(self, samples: dict, mode: str) -> np.ndarray:
         with self._torch.no_grad():
@@ -247,6 +293,7 @@ def load_model_from_spec(
     image_pooling: str = "first",
     text_pooling: str = "first",
     local_files_only: bool = False,
+    bert_tokenizer_path: str | None = None,
 ) -> EmbeddingModel:
     """Create a model adapter from a compact spec string."""
 
@@ -263,6 +310,7 @@ def load_model_from_spec(
             image_pooling=image_pooling,
             text_pooling=text_pooling,
             local_files_only=local_files_only,
+            bert_tokenizer_path=bert_tokenizer_path,
         )
 
     if backend == "transformers-clip":

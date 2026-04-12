@@ -20,7 +20,7 @@ if __package__ in (None, ""):
 from code.pj1.task1.coco import build_caption_records, load_coco_val_captions, validate_image_files
 from code.pj1.task1.metrics import evaluate_retrieval
 from code.pj1.task1.models import load_model_from_spec
-from code.pj1.runtime import configure_offline_mode, configure_runtime_env
+from code.pj1.runtime import configure_hf_endpoint, configure_offline_mode, configure_runtime_env
 
 
 DEFAULT_MODEL_SPECS = (
@@ -49,6 +49,16 @@ def parse_args() -> argparse.Namespace:
         "--local-files-only",
         action="store_true",
         help="Do not download remote files. Fail if required model files are not already cached locally.",
+    )
+    parser.add_argument(
+        "--bert-tokenizer-path",
+        default=None,
+        help="Optional local path to a bert-base-uncased tokenizer directory for offline BLIP/BLIP-2 loading.",
+    )
+    parser.add_argument(
+        "--hf-endpoint",
+        default=None,
+        help="Optional Hugging Face mirror endpoint, for example https://hf-mirror.com",
     )
     return parser.parse_args()
 
@@ -97,6 +107,7 @@ def load_or_extract_embeddings(
         image_pooling=args.image_pooling,
         text_pooling=args.text_pooling,
         local_files_only=args.local_files_only,
+        bert_tokenizer_path=args.bert_tokenizer_path,
     )
     image_embeddings = model.encode_images(image_paths, batch_size=args.image_batch_size)
     text_embeddings = model.encode_texts(texts, batch_size=args.text_batch_size)
@@ -136,6 +147,7 @@ def main() -> int:
     output_dir = Path(args.output_dir)
     result_dir = output_dir / "results"
     configure_runtime_env(output_dir)
+    configure_hf_endpoint(args.hf_endpoint)
     configure_offline_mode(args.local_files_only)
 
     images = load_coco_val_captions(args.annotation, args.image_dir, max_images=args.max_images)

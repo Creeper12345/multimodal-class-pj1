@@ -37,6 +37,14 @@ def configure_offline_mode(local_files_only: bool) -> None:
     os.environ["HF_DATASETS_OFFLINE"] = "1"
 
 
+def configure_hf_endpoint(endpoint: str | None) -> None:
+    if not endpoint:
+        return
+    normalized = endpoint.rstrip("/")
+    os.environ["HF_ENDPOINT"] = normalized
+    os.environ["HUGGINGFACE_CO_RESOLVE_ENDPOINT"] = normalized
+
+
 def configure_runtime_env(output_dir: str | Path) -> RuntimePaths:
     configure_platform_env()
     output_dir = Path(output_dir)
@@ -51,6 +59,11 @@ def configure_runtime_env(output_dir: str | Path) -> RuntimePaths:
         transformers_cache=str(transformers_cache),
         torch_home=str(torch_home),
     )
+
+
+def managed_bert_tokenizer_dir(output_dir: str | Path) -> Path:
+    output_dir = Path(output_dir)
+    return output_dir / "hf_cache" / "manual" / "bert-base-uncased"
 
 
 def detect_torch_runtime() -> dict[str, Any]:
