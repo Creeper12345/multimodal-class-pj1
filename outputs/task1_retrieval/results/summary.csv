@@ -1,2 +1,0 @@
-model_spec,run_name,num_images,num_captions,text_to_image_R@1,text_to_image_R@5,text_to_image_R@10,image_to_text_R@1,image_to_text_R@5,image_to_text_R@10,elapsed_seconds
-lavis:blip2_feature_extractor:pretrain,lavis_blip2_feature_extractor_pretrain_n1000_mean_mean_7c8f5056,1000,5003,69.61822906256246,92.06476114331402,96.84189486308215,79.8,95.7,98.6,152.744

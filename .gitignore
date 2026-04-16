@@ -19,6 +19,7 @@ datasets/*.zip
 datasets/*.tar.gz
 
 # Model and experiment artifacts
+outputs/
 outputs/**/cache/
 outputs/**/hf_cache/
 outputs/**/torch_cache/

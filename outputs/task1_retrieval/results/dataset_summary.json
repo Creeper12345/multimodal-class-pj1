@@ -1,7 +1,0 @@
-{
-  "annotation": "datasets/annotations/captions_val2017.json",
-  "image_dir": "datasets/val2017",
-  "num_images": 1000,
-  "num_captions": 5003,
-  "max_images": 1000
-}
