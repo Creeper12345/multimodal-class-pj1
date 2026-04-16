@@ -82,6 +82,41 @@
   - `conda run -n multimodal python scripts/check_environment.py --check-data`
   - `conda run -n multimodal python code/pj1/task1/run_retrieval.py --dry-run --max-images 10`
 
+## 2026-04-13
+
+- Synced server-side full Task 1 results back into `outputs/task1_retrieval/results/`.
+- Reviewed `summary.csv` and per-model JSON outputs for:
+  - `lavis:clip_feature_extractor:base`
+  - `lavis:blip_retrieval:coco`
+  - `lavis:blip2_feature_extractor:pretrain`
+- Wrote a dedicated Task 1 analysis note:
+  - `docs/TASK1_结果分析.md`
+
+## 2026-04-14
+
+- Synced server-side embedding cache back into `outputs/task1_retrieval/cache/`.
+- Added Task 1 analysis helpers:
+  - `code/pj1/task1/analysis.py`
+  - `scripts/analyze_task1_results.py`
+- Generated similarity heatmaps and retrieval example markdown under:
+  - `outputs/task1_retrieval/analysis/`
+- Updated the Task 1 write-up to reflect the two-layer reporting structure:
+  - off-the-shelf retrieval comparison
+  - unified feature-based retrieval comparison
+- Added a consolidated analysis note:
+  - `docs/TASK1_综合分析.md`
+- Started Task 2 implementation.
+- Added Task 2 code scaffold:
+  - `code/pj1/task2/coco.py`
+  - `code/pj1/task2/models.py`
+  - `code/pj1/task2/metrics.py`
+  - `code/pj1/task2/run_captioning.py`
+- Added `scripts/prefetch_task2_models.py` for caption-model prefetch and smoke
+  validation.
+- Updated `tasks/task2_captioning/README.md` with the Task 2 run order and
+  command examples.
+- Expanded `docs/PLAN.md` with the Task 2 decoding/evaluation protocol.
+
 ## Next Steps
 
 - Decide the storage budget for model checkpoints before resuming BLIP / BLIP-2

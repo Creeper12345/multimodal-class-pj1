@@ -58,6 +58,25 @@ Planned scope:
 - Evaluate BLEU-4 and CIDEr at minimum.
 - Add METEOR, ROUGE-L, and SPICE if `pycocoevalcap` dependencies are available.
 
+Implementation plan:
+
+1. Use LAVIS caption checkpoints:
+   - `lavis:blip_caption:base_coco`
+   - `lavis:blip2_opt:caption_coco_opt2.7b`
+2. Keep one caption per image under a shared decoding protocol:
+   - default `num_beams=5`
+   - `max_length=30`
+   - `min_length=1`
+3. Save generated captions to `outputs/task2_captioning/predictions/`.
+4. Evaluate with `pycocoevalcap` scorers through a local wrapper so evaluation
+   does not depend on `pycocotools`.
+5. Record warnings when Java-based tokenization or optional scorers are
+   unavailable.
+6. Keep Task 2 runtime flags aligned with Task 1:
+   - `--local-files-only`
+   - `--hf-endpoint`
+   - `--bert-tokenizer-path`
+
 ## Task 3 - Representation Analysis
 
 Working directory: `tasks/task3_representation/`.

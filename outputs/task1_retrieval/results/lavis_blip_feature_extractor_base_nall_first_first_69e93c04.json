@@ -1,0 +1,24 @@
+{
+  "model_spec": "lavis:blip_feature_extractor:base",
+  "run_name": "lavis_blip_feature_extractor_base_nall_first_first_69e93c04",
+  "dataset": {
+    "annotation": "datasets/annotations/captions_val2017.json",
+    "image_dir": "datasets/val2017",
+    "num_images": 5000,
+    "num_captions": 25014,
+    "max_images": null
+  },
+  "metrics": {
+    "text_to_image": {
+      "R@1": 49.896058207403854,
+      "R@5": 76.10937874790118,
+      "R@10": 84.87646917726073
+    },
+    "image_to_text": {
+      "R@1": 63.76,
+      "R@5": 86.8,
+      "R@10": 93.12
+    }
+  },
+  "elapsed_seconds": 293.0074540991336
+}

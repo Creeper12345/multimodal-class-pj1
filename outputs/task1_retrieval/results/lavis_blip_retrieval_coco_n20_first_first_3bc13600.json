@@ -1,0 +1,24 @@
+{
+  "model_spec": "lavis:blip_retrieval:coco",
+  "run_name": "lavis_blip_retrieval_coco_n20_first_first_3bc13600",
+  "dataset": {
+    "annotation": "datasets/annotations/captions_val2017.json",
+    "image_dir": "datasets/val2017",
+    "num_images": 20,
+    "num_captions": 100,
+    "max_images": 20
+  },
+  "metrics": {
+    "text_to_image": {
+      "R@1": 99.0,
+      "R@5": 100.0,
+      "R@10": 100.0
+    },
+    "image_to_text": {
+      "R@1": 100.0,
+      "R@5": 100.0,
+      "R@10": 100.0
+    }
+  },
+  "elapsed_seconds": 20.53855811432004
+}

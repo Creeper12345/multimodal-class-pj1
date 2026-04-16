@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import platform
 import sys
+import warnings
 from typing import Any
 
 
@@ -22,6 +23,26 @@ class RuntimePaths:
 
 
 def configure_platform_env() -> None:
+    warnings.filterwarnings(
+        "ignore",
+        message=r"Using the environment variable `HUGGINGFACE_CO_RESOLVE_ENDPOINT` is deprecated.*",
+        category=FutureWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"`torch\.cuda\.amp\.custom_fwd\(args\.\.\.\)` is deprecated.*",
+        category=FutureWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"`torch\.cuda\.amp\.custom_bwd\(args\.\.\.\)` is deprecated.*",
+        category=FutureWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"You are using `torch\.load` with `weights_only=False`.*",
+        category=FutureWarning,
+    )
     os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
     os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
     if sys.platform == "darwin":
@@ -42,7 +63,6 @@ def configure_hf_endpoint(endpoint: str | None) -> None:
         return
     normalized = endpoint.rstrip("/")
     os.environ["HF_ENDPOINT"] = normalized
-    os.environ["HUGGINGFACE_CO_RESOLVE_ENDPOINT"] = normalized
 
 
 def configure_runtime_env(output_dir: str | Path) -> RuntimePaths:
