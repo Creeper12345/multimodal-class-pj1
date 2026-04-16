@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+import shutil
 import subprocess
 import tempfile
 from typing import Iterable, Sequence
@@ -11,6 +12,8 @@ from typing import Iterable, Sequence
 
 BLEU_METHODS = ("Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4")
 SUPPORTED_METRICS = ("Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4", "METEOR", "ROUGE_L", "CIDEr", "SPICE")
+JAVA_REQUIRED_METRICS = ("METEOR", "SPICE")
+JAVA_METRICS_ENV = "PJ1_ENABLE_JAVA_METRICS"
 STANFORD_CORENLP_3_4_1_JAR = "stanford-corenlp-3.4.1.jar"
 PUNCTUATIONS = ("''", "'", "``", "`", "-LRB-", "-RRB-", "-LCB-", "-RCB-", ".", "?", "!", ",", ":", "-", "--", "...")
 
@@ -124,6 +127,46 @@ def _metric_scorers(requested: set[str]) -> list[tuple[object, Sequence[str]]]:
     return scorers
 
 
+def _drop_unavailable_metrics(requested: list[str], strict: bool) -> tuple[list[str], list[str]]:
+    warnings: list[str] = []
+    available = list(requested)
+    unavailable: list[str] = []
+    java_metrics_requested = [metric for metric in available if metric in JAVA_REQUIRED_METRICS]
+    java_metrics_enabled = os.environ.get(JAVA_METRICS_ENV) == "1"
+    if java_metrics_requested and not java_metrics_enabled:
+        unavailable.extend(java_metrics_requested)
+    elif shutil.which("java") is None:
+        unavailable.extend(metric for metric in available if metric in JAVA_REQUIRED_METRICS)
+    if "SPICE" in available and "SPICE" not in unavailable and not _spice_dependencies_available():
+        unavailable.append("SPICE")
+
+    if unavailable and strict:
+        raise RuntimeError(
+            "Required local dependencies are unavailable for these caption metrics: "
+            + ", ".join(unavailable)
+        )
+    for metric in unavailable:
+        available.remove(metric)
+    if unavailable:
+        warnings.append(
+            "Skipped caption metrics with unavailable local dependencies: "
+            + ", ".join(unavailable)
+            + f". Set {JAVA_METRICS_ENV}=1 only when Java metric dependencies are ready."
+        )
+    return available, warnings
+
+
+def _spice_dependencies_available() -> bool:
+    try:
+        from pycocoevalcap.spice import get_stanford_models
+    except Exception:
+        return False
+    spice_dir = os.path.dirname(os.path.abspath(get_stanford_models.__file__))
+    jar_path = os.path.join(spice_dir, "lib", "stanford-corenlp-3.6.0.jar")
+    models_path = os.path.join(spice_dir, "lib", "stanford-corenlp-3.6.0-models.jar")
+    return os.path.exists(jar_path) and os.path.exists(models_path)
+
+
 def evaluate_captions(
     references: dict[int, list[dict[str, str]]],
     predictions: dict[int, list[dict[str, str]]],
@@ -134,6 +177,9 @@ def evaluate_captions(
     requested = [metric for metric in metrics if metric in SUPPORTED_METRICS]
     if not requested:
         raise ValueError("No supported caption metrics were requested.")
+    requested, availability_warnings = _drop_unavailable_metrics(requested, strict=strict)
+    if not requested:
+        raise ValueError("No requested caption metrics are available in this environment.")
 
     reference_ids = set(references)
     prediction_ids = set(predictions)
@@ -150,6 +196,7 @@ def evaluate_captions(
         normalized_references,
         tokenizer_fallback=tokenizer_fallback,
     )
+    warnings.extend(availability_warnings)
     tokenized_predictions, tokenization_warnings = _tokenize_records(
         normalized_predictions,
         tokenizer_fallback=tokenizer_fallback,

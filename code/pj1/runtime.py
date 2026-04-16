@@ -43,6 +43,11 @@ def configure_platform_env() -> None:
         message=r"You are using `torch\.load` with `weights_only=False`.*",
         category=FutureWarning,
     )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"`resume_download` is deprecated.*",
+        category=FutureWarning,
+    )
     os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
     os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
     if sys.platform == "darwin":

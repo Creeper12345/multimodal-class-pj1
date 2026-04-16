@@ -31,12 +31,17 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", default="outputs/task2_captioning")
     parser.add_argument("--model-spec", action="append", default=None)
-    parser.add_argument("--device", default="auto")
+    parser.add_argument("--device", default="cpu")
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--local-files-only", action="store_true")
     parser.add_argument("--bert-tokenizer-path", default=None)
     parser.add_argument("--hf-endpoint", default=None)
-    parser.add_argument("--skip-generate", action="store_true")
+    parser.add_argument(
+        "--smoke-generate",
+        action="store_true",
+        help="After loading the model, run one tiny caption-generation smoke test.",
+    )
+    parser.add_argument("--skip-generate", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args()
 
 
@@ -80,7 +85,7 @@ def main() -> int:
             bert_tokenizer_path=args.bert_tokenizer_path or str(bert_dir),
         )
         did_generate = False
-        if not args.skip_generate and sample_image.exists():
+        if args.smoke_generate and not args.skip_generate and sample_image.exists():
             model.generate_captions(
                 [sample_image],
                 batch_size=args.batch_size,

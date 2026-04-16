@@ -116,6 +116,12 @@
 - Updated `tasks/task2_captioning/README.md` with the Task 2 run order and
   command examples.
 - Expanded `docs/PLAN.md` with the Task 2 decoding/evaluation protocol.
+- Adjusted Task 2 default metrics to `Bleu_4` and `CIDEr` to match the minimum
+  project requirement and avoid hard failure on servers without Java.
+- Made Java-dependent metrics (`METEOR`, `SPICE`) optional and skippable with
+  warnings.
+- Changed Task 2 prefetch behavior so it defaults to CPU loading and does not
+  run caption generation unless `--smoke-generate` is provided.
 
 ## Next Steps
 

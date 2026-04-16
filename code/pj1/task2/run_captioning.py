@@ -24,7 +24,7 @@ DEFAULT_MODEL_SPECS = (
     "lavis:blip_caption:base_coco",
     "lavis:blip2_opt:caption_coco_opt2.7b",
 )
-DEFAULT_METRICS = ("Bleu_4", "CIDEr", "METEOR", "ROUGE_L", "SPICE")
+DEFAULT_METRICS = ("Bleu_4", "CIDEr")
 
 
 def parse_args() -> argparse.Namespace:

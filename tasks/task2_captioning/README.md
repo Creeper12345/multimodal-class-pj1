@@ -42,6 +42,16 @@ conda run -n multimodal python scripts/prefetch_task2_models.py \
   --hf-endpoint https://hf-mirror.com
 ```
 
+默认只做加载检查，不做生成验证，并且默认使用 CPU，避免预下载阶段占用 GPU。
+如果要验证生成链路：
+
+```bash
+conda run -n multimodal python scripts/prefetch_task2_models.py \
+  --hf-endpoint https://hf-mirror.com \
+  --device cuda \
+  --smoke-generate
+```
+
 ### 2. Dry-run
 
 ```bash
@@ -89,6 +99,9 @@ conda run -n multimodal python code/pj1/task2/run_captioning.py \
 
 - 标准 COCO tokenization 依赖 Java。
 - 如果机器没有 Java，代码会默认回退到 `identity` tokenization，并在结果 JSON 里写入 warning。
+- 默认指标只计算 `Bleu_4` 和 `CIDEr`。
+- `METEOR` 和 `SPICE` 依赖 Java；默认会被跳过，避免 smoke test 卡死。
+- 若确认 Java 和 SPICE 依赖都已准备好，再设置 `PJ1_ENABLE_JAVA_METRICS=1` 并显式传入 `--metric METEOR` 或 `--metric SPICE`。
 - 如果要强制使用标准 tokenization，添加：
 
 ```bash
