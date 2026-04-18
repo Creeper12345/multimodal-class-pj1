@@ -12,6 +12,7 @@ from typing import Protocol, Sequence
 import numpy as np
 from PIL import Image
 
+from code.pj1.progress import num_batches, progress_iter
 from code.pj1.runtime import configure_platform_env
 
 
@@ -211,7 +212,14 @@ class LavisFeatureExtractor:
     def encode_images(self, image_paths: Sequence[Path], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
         processor = self.vis_processors["eval"]
-        for batch_paths in _batched(list(image_paths), batch_size):
+        paths = list(image_paths)
+        batches = _batched(paths, batch_size)
+        for batch_paths in progress_iter(
+            batches,
+            desc=f"{self.name}: image embeddings",
+            total=num_batches(len(paths), batch_size),
+            unit="batch",
+        ):
             images = []
             for path in batch_paths:
                 raw = Image.open(path).convert("RGB")
@@ -224,7 +232,14 @@ class LavisFeatureExtractor:
     def encode_texts(self, texts: Sequence[str], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
         processor = self.txt_processors["eval"]
-        for batch_texts in _batched(list(texts), batch_size):
+        text_items = list(texts)
+        batches = _batched(text_items, batch_size)
+        for batch_texts in progress_iter(
+            batches,
+            desc=f"{self.name}: text embeddings",
+            total=num_batches(len(text_items), batch_size),
+            unit="batch",
+        ):
             processed = [processor(text) for text in batch_texts]
             array = self._extract_projected({"text_input": processed}, mode="text")
             outputs.append(_pool_feature_array(array, self.text_pooling))
@@ -256,7 +271,14 @@ class TransformersClipExtractor:
 
     def encode_images(self, image_paths: Sequence[Path], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
-        for batch_paths in _batched(list(image_paths), batch_size):
+        paths = list(image_paths)
+        batches = _batched(paths, batch_size)
+        for batch_paths in progress_iter(
+            batches,
+            desc=f"{self.name}: image embeddings",
+            total=num_batches(len(paths), batch_size),
+            unit="batch",
+        ):
             images = [Image.open(path).convert("RGB") for path in batch_paths]
             inputs = self.processor(images=images, return_tensors="pt", padding=True).to(self.device)
             with self._torch.no_grad():
@@ -266,7 +288,14 @@ class TransformersClipExtractor:
 
     def encode_texts(self, texts: Sequence[str], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
-        for batch_texts in _batched(list(texts), batch_size):
+        text_items = list(texts)
+        batches = _batched(text_items, batch_size)
+        for batch_texts in progress_iter(
+            batches,
+            desc=f"{self.name}: text embeddings",
+            total=num_batches(len(text_items), batch_size),
+            unit="batch",
+        ):
             inputs = self.processor(text=list(batch_texts), return_tensors="pt", padding=True, truncation=True).to(
                 self.device
             )
@@ -301,7 +330,14 @@ class OpenClipExtractor:
 
     def encode_images(self, image_paths: Sequence[Path], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
-        for batch_paths in _batched(list(image_paths), batch_size):
+        paths = list(image_paths)
+        batches = _batched(paths, batch_size)
+        for batch_paths in progress_iter(
+            batches,
+            desc=f"{self.name}: image embeddings",
+            total=num_batches(len(paths), batch_size),
+            unit="batch",
+        ):
             images = [self.preprocess(Image.open(path).convert("RGB")) for path in batch_paths]
             tensor = self._torch.stack(images, dim=0).to(self.device)
             with self._torch.no_grad():
@@ -311,7 +347,14 @@ class OpenClipExtractor:
 
     def encode_texts(self, texts: Sequence[str], batch_size: int) -> np.ndarray:
         outputs: list[np.ndarray] = []
-        for batch_texts in _batched(list(texts), batch_size):
+        text_items = list(texts)
+        batches = _batched(text_items, batch_size)
+        for batch_texts in progress_iter(
+            batches,
+            desc=f"{self.name}: text embeddings",
+            total=num_batches(len(text_items), batch_size),
+            unit="batch",
+        ):
             tokens = self.tokenizer(list(batch_texts)).to(self.device)
             with self._torch.no_grad():
                 features = self.model.encode_text(tokens)

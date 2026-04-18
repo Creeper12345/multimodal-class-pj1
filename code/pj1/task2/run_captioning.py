@@ -105,9 +105,11 @@ def load_or_generate_predictions(
     run_name = safe_name(spec, args.max_images, generation_config)
     prediction_path = output_dir / "predictions" / f"{run_name}.json"
     if prediction_path.exists() and not args.overwrite_predictions:
+        print(f"Loading cached predictions: {prediction_path}")
         with prediction_path.open("r", encoding="utf-8") as f:
             return json.load(f), run_name
 
+    print(f"Generating predictions: {prediction_path}")
     model = load_model_from_spec(
         spec=spec,
         device=args.device,
@@ -200,6 +202,7 @@ def main() -> int:
         metric_payload: dict[str, Any] = {}
         warnings: list[str] = []
         if not args.skip_metrics:
+            print(f"Evaluating caption metrics for {run_name}: {', '.join(metrics)}")
             evaluated = evaluate_captions(
                 references=references,
                 predictions=prediction_mapping(predictions),

@@ -14,6 +14,7 @@ import numpy as np
 from code.pj1.task1.coco import CocoImage, CaptionRecord
 from code.pj1.task1.metrics import l2_normalize
 from code.pj1.task1.run_retrieval import cache_paths
+from code.pj1.progress import progress_iter
 
 
 @dataclass(frozen=True)
@@ -78,7 +79,12 @@ def collect_text_to_image_examples(
     scores = matrix[np.arange(matrix.shape[0]), top1]
     correct: list[RetrievalExample] = []
     wrong: list[RetrievalExample] = []
-    for idx, pred_image_idx in enumerate(top1):
+    for idx, pred_image_idx in progress_iter(
+        enumerate(top1),
+        desc="Collect T2I examples",
+        total=len(top1),
+        unit="caption",
+    ):
         record = caption_records[idx]
         gt_image = images[record.image_index]
         pred_image = images[int(pred_image_idx)]
@@ -111,7 +117,12 @@ def collect_image_to_text_examples(
     scores = image_to_text_matrix[np.arange(image_to_text_matrix.shape[0]), top1]
     correct: list[RetrievalExample] = []
     wrong: list[RetrievalExample] = []
-    for image_idx, caption_idx in enumerate(top1):
+    for image_idx, caption_idx in progress_iter(
+        enumerate(top1),
+        desc="Collect I2T examples",
+        total=len(top1),
+        unit="image",
+    ):
         image = images[image_idx]
         pred_caption = caption_records[int(caption_idx)]
         gt_caption = image.captions[0]

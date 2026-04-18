@@ -7,6 +7,8 @@ from typing import Sequence
 
 import numpy as np
 
+from code.pj1.progress import progress_iter
+
 
 @dataclass(frozen=True)
 class RetrievalMetrics:
@@ -87,7 +89,13 @@ def evaluate_retrieval(
 
     text_positives = [{int(image_index)} for image_index in caption_image_indices]
     text_topk_parts: list[np.ndarray] = []
-    for start in range(0, text_embeddings.shape[0], eval_batch_size):
+    text_ranges = range(0, text_embeddings.shape[0], eval_batch_size)
+    for start in progress_iter(
+        text_ranges,
+        desc="Text-to-image similarity",
+        total=len(text_ranges),
+        unit="batch",
+    ):
         end = min(start + eval_batch_size, text_embeddings.shape[0])
         scores = text_embeddings[start:end] @ image_embeddings.T
         text_topk_parts.append(_topk_indices(scores, min(max_k, image_embeddings.shape[0])))
@@ -99,7 +107,13 @@ def evaluate_retrieval(
         image_positives[int(image_index)].add(caption_index)
 
     image_topk_parts: list[np.ndarray] = []
-    for start in range(0, image_embeddings.shape[0], eval_batch_size):
+    image_ranges = range(0, image_embeddings.shape[0], eval_batch_size)
+    for start in progress_iter(
+        image_ranges,
+        desc="Image-to-text similarity",
+        total=len(image_ranges),
+        unit="batch",
+    ):
         end = min(start + eval_batch_size, image_embeddings.shape[0])
         scores = image_embeddings[start:end] @ text_embeddings.T
         image_topk_parts.append(_topk_indices(scores, min(max_k, text_embeddings.shape[0])))
@@ -107,4 +121,3 @@ def evaluate_retrieval(
     image_to_text = _recall_from_topk(image_topk, image_positives, ks)
 
     return RetrievalMetrics(text_to_image=text_to_image, image_to_text=image_to_text)
-

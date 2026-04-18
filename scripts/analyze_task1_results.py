@@ -20,6 +20,7 @@ from code.pj1.task1.analysis import (
     similarity_matrix,
 )
 from code.pj1.task1.coco import build_caption_records, load_coco_val_captions
+from code.pj1.progress import progress_iter
 
 
 def parse_args() -> argparse.Namespace:
@@ -98,7 +99,12 @@ def main() -> int:
         [name for name in sorted(selected_run_names) if name not in ordered_run_names]
     )
 
-    for run_name in ordered_run_names:
+    for run_name in progress_iter(
+        ordered_run_names,
+        desc="Analyze Task 1 runs",
+        total=len(ordered_run_names),
+        unit="run",
+    ):
         if run_name not in selected_run_names:
             continue
 

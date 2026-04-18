@@ -18,6 +18,7 @@ from code.pj1.runtime import (
     configure_runtime_env,
     managed_bert_tokenizer_dir,
 )
+from code.pj1.progress import progress_iter
 from code.pj1.task2.models import load_model_from_spec
 
 
@@ -76,8 +77,9 @@ def main() -> int:
         "prompt": None,
     }
 
-    for spec in model_specs:
+    for spec in progress_iter(model_specs, desc="Prefetch Task 2 models", unit="model"):
         start = perf_counter()
+        print(f"Loading model files for {spec}")
         model = load_model_from_spec(
             spec=spec,
             device=args.device,

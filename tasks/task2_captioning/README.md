@@ -95,6 +95,9 @@ conda run -n multimodal python code/pj1/task2/run_captioning.py \
 - `outputs/task2_captioning/results/<run_name>.json`
 - `outputs/task2_captioning/results/summary.csv`
 
+运行时会显示 caption 生成进度条。如果 prediction 文件已经存在，脚本会打印
+`Loading cached predictions` 并直接复用缓存，只重新执行指标评测。
+
 ## 评测注意事项
 
 - 标准 COCO tokenization 依赖 Java。

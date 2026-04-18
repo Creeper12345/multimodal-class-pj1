@@ -9,6 +9,8 @@ import subprocess
 import tempfile
 from typing import Iterable, Sequence
 
+from code.pj1.progress import progress_iter
+
 
 BLEU_METHODS = ("Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4")
 SUPPORTED_METRICS = ("Bleu_1", "Bleu_2", "Bleu_3", "Bleu_4", "METEOR", "ROUGE_L", "CIDEr", "SPICE")
@@ -204,7 +206,13 @@ def evaluate_captions(
     warnings.extend(tokenization_warnings)
 
     scores: dict[str, float] = {}
-    for scorer, method_names in _metric_scorers(set(requested)):
+    scorer_items = _metric_scorers(set(requested))
+    for scorer, method_names in progress_iter(
+        scorer_items,
+        desc="Caption metrics",
+        total=len(scorer_items),
+        unit="metric",
+    ):
         try:
             score, _ = scorer.compute_score(tokenized_references, tokenized_predictions)
         except Exception as exc:

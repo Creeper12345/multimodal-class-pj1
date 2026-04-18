@@ -122,6 +122,8 @@
   warnings.
 - Changed Task 2 prefetch behavior so it defaults to CPU loading and does not
   run caption generation unless `--smoke-generate` is provided.
+- Added progress bars and explicit cache/generation messages for long-running
+  Task 1, Task 2, prefetch, and analysis paths.
 
 ## Next Steps
 

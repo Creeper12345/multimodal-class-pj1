@@ -9,6 +9,7 @@ from typing import Any, Protocol, Sequence
 
 from PIL import Image
 
+from code.pj1.progress import num_batches, progress_iter
 from code.pj1.runtime import configure_platform_env
 from code.pj1.task1.models import _batched, _patch_lavis_bert_tokenizer, _resolve_bert_tokenizer_path
 
@@ -75,7 +76,14 @@ class LavisCaptionGenerator:
     ) -> list[str]:
         processor = self.vis_processors["eval"]
         captions: list[str] = []
-        for batch_paths in _batched(list(image_paths), batch_size):
+        paths = list(image_paths)
+        batches = _batched(paths, batch_size)
+        for batch_paths in progress_iter(
+            batches,
+            desc=f"{self.name}: captions",
+            total=num_batches(len(paths), batch_size),
+            unit="batch",
+        ):
             images = [processor(Image.open(path).convert("RGB")) for path in batch_paths]
             tensor = self._torch.stack(images, dim=0).to(self.device)
             samples: dict[str, Any] = {"image": tensor}

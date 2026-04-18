@@ -13,6 +13,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from code.pj1.runtime import configure_hf_endpoint, configure_runtime_env, managed_bert_tokenizer_dir
+from code.pj1.progress import progress_iter
 from code.pj1.task1.coco import load_coco_val_captions
 from code.pj1.task1.models import load_model_from_spec
 
@@ -95,8 +96,9 @@ def main() -> int:
     sample_texts = [images[0].captions[0]] if images else ["a photo"]
 
     results: list[dict] = []
-    for spec in model_specs:
+    for spec in progress_iter(model_specs, desc="Prefetch Task 1 models", unit="model"):
         start = perf_counter()
+        print(f"Loading model files for {spec}")
         model = load_model_from_spec(
             spec,
             device=args.device,
