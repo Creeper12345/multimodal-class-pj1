@@ -27,18 +27,20 @@
 
 ## 定量结果
 
-| Model | BLEU-4 | CIDEr | ROUGE-L* | Time | sec / image | images / sec |
-|---|---:|---:|---:|---:|---:|---:|
-| BLIP caption `base_coco` | 0.4167 | 1.4053 | 0.5753 | 1612.79s | 0.323 | 3.10 |
-| BLIP-2 OPT `caption_coco_opt2.7b` | 0.4753 | 1.5732 | 0.6016 | 3098.89s | 0.620 | 1.61 |
+| Model | BLEU-4 | CIDEr | METEOR | ROUGE-L | SPICE | Time | sec / image | images / sec |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| BLIP caption `base_coco` | 0.4167 | 1.4053 | 0.3183 | 0.6100 | 0.2463 | 1612.79s | 0.323 | 3.10 |
+| BLIP-2 OPT `caption_coco_opt2.7b` | 0.4753 | 1.5732 | 0.3300 | 0.6393 | 0.2643 | 3098.89s | 0.620 | 1.61 |
 
-`*` ROUGE-L 是基于已保存 prediction 重新评分得到的补充指标。本地复评时没有 Java，因此 PTBTokenizer 回退到简化 tokenization；正式报告中如果要求严格 COCO tokenization，建议在服务器安装 Java 后重新运行补充分数脚本。
+`METEOR / ROUGE-L / SPICE` 是基于已保存 prediction 重新评分得到的补充指标。当前本地 extra metrics 文件已经包含服务器 Java 环境下的补充分数，且 warnings 为空。
 
 相对 BLIP，BLIP-2 的提升为：
 
 - BLEU-4：+0.0587，约 +14.08%
 - CIDEr：+0.1679，约 +11.95%
-- ROUGE-L：+0.0263，约 +4.57%
+- METEOR：+0.0117，约 +3.68%
+- ROUGE-L：+0.0293，约 +4.81%
+- SPICE：+0.0180，约 +7.29%
 - 运行时间：约 1.92 倍
 
 ## 补充指标复评
@@ -55,7 +57,7 @@ conda run -n multimodal python scripts/evaluate_task2_predictions.py
 - `outputs/task2_captioning/results/lavis_blip_caption_base_coco_nall_beam5_max30_min1_sample0_1e5b638c_extra_metrics.json`
 - `outputs/task2_captioning/results/lavis_blip2_opt_caption_coco_opt2.7b_nall_beam5_max30_min1_sample0_14149ed3_extra_metrics.json`
 
-当前本地环境缺少 Java，因此只得到可用的 ROUGE-L，METEOR 和 SPICE 被脚本安全跳过。若需要正式补齐 METEOR 和 SPICE，在服务器上执行：
+当前本地拷贝中已经包含服务器跑出的 `METEOR / ROUGE-L / SPICE` 分数。如果需要重新补分，在服务器上执行：
 
 ```bash
 conda activate multimodal
@@ -63,7 +65,7 @@ conda install -c conda-forge openjdk=11 -y
 java -version
 ```
 
-先补 METEOR 和 ROUGE-L：
+补 METEOR 和 ROUGE-L：
 
 ```bash
 PJ1_ENABLE_JAVA_METRICS=1 python scripts/evaluate_task2_predictions.py \
@@ -73,7 +75,7 @@ PJ1_ENABLE_JAVA_METRICS=1 python scripts/evaluate_task2_predictions.py \
   --metric ROUGE_L
 ```
 
-SPICE 额外需要 Stanford CoreNLP 依赖。若服务器能访问 Stanford 下载源，可以先运行：
+SPICE 额外需要 Stanford CoreNLP 依赖。如果需要重新运行 SPICE，先确认依赖：
 
 ```bash
 python -c "from pycocoevalcap.spice.get_stanford_models import get_stanford_models; get_stanford_models()"
@@ -92,7 +94,7 @@ PJ1_ENABLE_JAVA_METRICS=1 python scripts/evaluate_task2_predictions.py \
 
 ## 主要结论
 
-BLIP-2 在 caption 质量上明显优于 BLIP。BLEU-4 和 CIDEr 都提升，说明它生成的句子不仅有更好的 n-gram 精确匹配，也更贴近 COCO 参考描述的内容表达。
+BLIP-2 在 caption 质量上明显优于 BLIP。BLEU-4、CIDEr、METEOR、ROUGE-L 和 SPICE 全部提升，说明它生成的句子不仅有更好的 n-gram 精确匹配，也更贴近 COCO 参考描述中的语义内容。
 
 代价也很明确：BLIP-2 的运行时间接近 BLIP 的两倍。对 5000 张 COCO val2017 图像，BLIP 约 26.9 分钟完成，BLIP-2 约 51.6 分钟完成。因此 BLIP-2 更适合作为质量优先的 caption 模型，BLIP 更适合作为轻量、速度优先的基线。
 

@@ -129,6 +129,19 @@
 - Re-scored saved Task 2 predictions locally for ROUGE-L and updated
   `docs/TASK2_结果分析.md` with the supplemental metric and server commands for
   METEOR/SPICE.
+- Merged server-side SPICE results into `docs/TASK2_结果分析.md`.
+- Updated `scripts/evaluate_task2_predictions.py` so repeated supplemental
+  metric runs merge into existing extra-metric files instead of overwriting
+  previous metrics.
+- Merged server-side METEOR and ROUGE-L results into
+  `docs/TASK2_结果分析.md`.
+- Started Task 3 implementation.
+- Added Task 3 representation analysis code:
+  - `code/pj1/task3/analysis.py`
+  - `code/pj1/task3/run_representation_analysis.py`
+  - `code/pj1/task3/text_to_image_search.py`
+- Updated Task 3 README and execution plan with visualization, nearest-neighbor,
+  and text-to-image search commands.
 
 ## Next Steps
 

@@ -87,6 +87,24 @@ Planned scope:
 - Run nearest-neighbor case studies for image-to-text and text-to-image.
 - Add optional compositional generalization cases.
 
+Implementation plan:
+
+1. Reuse Task 1 embedding caches under `outputs/task1_retrieval/cache/`.
+2. For each selected model, sample 100-1000 image-text pairs and use the first
+   caption of each image for visualization.
+3. Generate PCA by default, with optional t-SNE and UMAP.
+4. Compute diagnostic statistics:
+   - paired image-text similarity versus random pairing
+   - sample-level text-to-image and image-to-text top-1 match rate
+   - cross-modal kNN mixing ratio
+   - coarse semantic silhouette from keyword labels
+5. Generate nearest-neighbor cases:
+   - image query to top text captions
+   - text query to top images
+   - successful matches and hard negative failures
+6. Provide a separate text-to-image CLI for free-form text queries over cached
+   image embeddings.
+
 ## Submission
 
 Use `scripts/package_submission.py` to create a submission archive in `handin/`.
