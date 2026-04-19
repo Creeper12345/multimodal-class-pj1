@@ -98,6 +98,35 @@ conda run -n multimodal python code/pj1/task2/run_captioning.py \
 运行时会显示 caption 生成进度条。如果 prediction 文件已经存在，脚本会打印
 `Loading cached predictions` 并直接复用缓存，只重新执行指标评测。
 
+## 补充指标复评
+
+如果已经生成 prediction，不需要重新跑模型，可以直接补 METEOR、ROUGE-L、SPICE：
+
+```bash
+conda run -n multimodal python scripts/evaluate_task2_predictions.py
+```
+
+本地无 Java 时，脚本会跳过 `METEOR` 和 `SPICE`，只计算可用指标。服务器上补齐 Java 后：
+
+```bash
+conda install -c conda-forge openjdk=11 -y
+PJ1_ENABLE_JAVA_METRICS=1 python scripts/evaluate_task2_predictions.py \
+  --enable-java-metrics \
+  --tokenizer-fallback error \
+  --metric METEOR \
+  --metric ROUGE_L
+```
+
+`SPICE` 还需要 Stanford CoreNLP 依赖。若下载源可访问：
+
+```bash
+python -c "from pycocoevalcap.spice.get_stanford_models import get_stanford_models; get_stanford_models()"
+PJ1_ENABLE_JAVA_METRICS=1 python scripts/evaluate_task2_predictions.py \
+  --enable-java-metrics \
+  --tokenizer-fallback error \
+  --metric SPICE
+```
+
 ## 评测注意事项
 
 - 标准 COCO tokenization 依赖 Java。

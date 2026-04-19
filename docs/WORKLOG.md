@@ -124,6 +124,11 @@
   run caption generation unless `--smoke-generate` is provided.
 - Added progress bars and explicit cache/generation messages for long-running
   Task 1, Task 2, prefetch, and analysis paths.
+- Added `scripts/evaluate_task2_predictions.py` to re-score saved Task 2
+  predictions without regenerating captions.
+- Re-scored saved Task 2 predictions locally for ROUGE-L and updated
+  `docs/TASK2_结果分析.md` with the supplemental metric and server commands for
+  METEOR/SPICE.
 
 ## Next Steps
 
