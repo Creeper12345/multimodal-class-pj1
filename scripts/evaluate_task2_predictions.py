@@ -93,6 +93,47 @@ def write_summary(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def merge_extra_payload(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    if not path.exists():
+        return payload
+
+    existing = load_json(path)
+    merged_metrics = dict(existing.get("metrics", {}))
+    merged_metrics.update(payload.get("metrics", {}))
+
+    merged_warnings = list(existing.get("warnings", []))
+    for warning in payload.get("warnings", []):
+        if warning not in merged_warnings:
+            merged_warnings.append(warning)
+
+    merged_requested = list(existing.get("requested_metrics", []))
+    for metric in payload.get("requested_metrics", []):
+        if metric not in merged_requested:
+            merged_requested.append(metric)
+
+    existing.update(payload)
+    existing["metrics"] = merged_metrics
+    existing["warnings"] = merged_warnings
+    existing["requested_metrics"] = merged_requested
+    return existing
+
+
+def merge_summary_rows(path: Path, new_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    merged_by_run: dict[str, dict[str, Any]] = {}
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                merged_by_run[str(row["run_name"])] = dict(row)
+
+    for row in new_rows:
+        run_name = str(row["run_name"])
+        merged = merged_by_run.get(run_name, {})
+        merged.update({key: value for key, value in row.items() if value is not None})
+        merged_by_run[run_name] = merged
+
+    return list(merged_by_run.values())
+
+
 def main() -> int:
     args = parse_args()
     output_dir = Path(args.output_dir)
@@ -123,6 +164,7 @@ def main() -> int:
             tokenizer_fallback=args.tokenizer_fallback,
             strict=args.strict_metrics,
         )
+        extra_path = output_dir / "results" / f"{run_name}_extra_metrics.json"
         payload = {
             "run_name": run_name,
             "prediction_path": str(prediction_path),
@@ -130,18 +172,21 @@ def main() -> int:
             "warnings": list(evaluated.warnings),
             "requested_metrics": metrics,
         }
-        save_json(output_dir / "results" / f"{run_name}_extra_metrics.json", payload)
+        payload = merge_extra_payload(extra_path, payload)
+        save_json(extra_path, payload)
         rows.append(
             {
                 "run_name": run_name,
                 "num_predictions": len(predictions),
-                **evaluated.scores,
-                "warnings": " | ".join(evaluated.warnings),
+                **payload["metrics"],
+                "warnings": " | ".join(payload["warnings"]),
             }
         )
         print(json.dumps(payload, indent=2, ensure_ascii=False))
 
-    write_summary(output_dir / "results" / args.summary_name, rows)
+    summary_path = output_dir / "results" / args.summary_name
+    rows = merge_summary_rows(summary_path, rows)
+    write_summary(summary_path, rows)
     print(output_dir / "results" / args.summary_name)
     return 0
 
